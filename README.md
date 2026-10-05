@@ -221,4 +221,4 @@ bot = await createBot({
 
 ## Лицензия
 
-[MIT](LICENSE)
+НЕТ
