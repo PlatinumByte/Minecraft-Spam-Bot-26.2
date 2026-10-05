@@ -1,4 +1,4 @@
-# MinecraftNET Scanner — Bot Spammer
+# Minecraft Spam Bot
 
 Мультибот для **Minecraft Java 26.2**, который заходит на сервер и спамит в чат.
 Оркестратор на Python + воркеры на Node.js через `mineflayer-viaproxy`.
