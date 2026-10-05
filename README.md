@@ -1,49 +1,58 @@
-MinecraftNET Scanner — Bot Spammer
+# MinecraftNET Scanner — Bot Spammer
 
-Мультибот для Minecraft Java 26.2, который заходит на сервер и спамит в чат.
-Оркестратор на Python + воркеры на Node.js через mineflayer-viaproxy.
-Работает с версиями, которые mineflayer напрямую не держит (26.2 и выше),
-через прослойку ViaProxy.
+Мультибот для **Minecraft Java 26.2**, который заходит на сервер и спамит в чат.
+Оркестратор на Python + воркеры на Node.js через `mineflayer-viaproxy`.
+Работает с версиями, которые `mineflayer` напрямую не держит (26.2+), через прослойку ViaProxy.
 
-Как это устроено
+---
 
-orchestrator.py плодит N воркеров, каждому даёт свой ник, следит за событиями
-(spawn / kicked / end / error), реконнектит упавших.
-bot_worker.js — один процесс = один бот. Поднимает ViaProxy, коннектится к
-MC-серверу, спамит в чат с заданным интервалом.
-ViaProxy — Java-прокси, который транслирует протокол клиента в 26.2.
-Каждый бот запускает свой экземпляр (см. ограничения ниже).
-Общение оркестратора с воркерами — JSON-строки через stdin/stdout.
+## Как это устроено
 
-Схема:
-
-orchestrator.py  --spawn-->  bot_worker.js  -->  ViaProxy (JVM)  -->  MC-сервер
+```
+orchestrator.py  ──spawn──>  bot_worker.js  ──>  ViaProxy (JVM)  ──>  MC-сервер
    (Python)                     (Node.js)          (Java, per-bot)
+```
 
-Требования
+- **`orchestrator.py`** — плодит N воркеров, каждому даёт свой ник, следит за событиями (`spawn` / `kicked` / `end` / `error`), реконнектит упавших.
+- **`bot_worker.js`** — один процесс = один бот. Поднимает ViaProxy, коннектится к MC-серверу, спамит в чат с заданным интервалом.
+- **ViaProxy** — Java-прокси, транслирует протокол клиента в 26.2. Каждый бот запускает свой экземпляр (см. [ограничения](#ограничения-и-грабли)).
+- Общение оркестратора с воркерами — JSON-строки через `stdin`/`stdout`.
 
-- Python 3.10+
-- Node.js 18+
-- Java 17+ (JRE достаточно) — обязательна для ViaProxy
-- Windows / Linux / macOS
+---
 
-Проверить:
+## Требования
 
+| Компонент | Версия | Обязательно |
+|---|---|---|
+| Python | 3.10+ | ✅ |
+| Node.js | 18+ | ✅ |
+| Java (JRE) | 17+ | ✅ (для ViaProxy) |
+| ОС | Windows / Linux / macOS | — |
+
+Проверка:
+
+```bash
 python --version
 node --version
 java -version
+```
 
-Если Java нет — ставь Temurin 17+ с https://adoptium.net
+Если Java нет — ставь [Temurin 17+](https://adoptium.net).
 
-Установка
+---
 
-1. Клонировать репозиторий
+## Установка
 
+### 1. Клонировать репозиторий
+
+```bash
 git clone https://github.com/<твой-юзер>/<репо>.git
 cd <репо>
+```
 
-2. Python-окружение
+### 2. Python-окружение
 
+```bash
 python -m venv .venv
 
 # Windows
@@ -51,118 +60,142 @@ python -m venv .venv
 
 # Linux / macOS
 source .venv/bin/activate
+```
 
-Внешних питон-зависимостей нет — только стандартная библиотека.
-Виртуалка нужна чисто для изоляции.
+> Внешних питон-зависимостей нет — только стандартная библиотека.
+> Виртуалка нужна чисто для изоляции.
 
-3. Node-зависимости
+### 3. Node-зависимости
 
+```bash
 npm install mineflayer-viaproxy
+```
 
-При первом запуске mineflayer-viaproxy сам скачает ViaProxy.jar
-в папку viaproxy/ рядом с воркером.
+При первом запуске `mineflayer-viaproxy` сам скачает `ViaProxy.jar`
+в папку `viaproxy/` рядом с воркером.
 
-Настройка
+---
 
-Все параметры — в orchestrator.py:
+## Настройка
 
-HOST = "127.0.0.1"                    # адрес MC-сервера
-PORT = 25565                          # порт
-NUM_BOTS = 10                         # сколько ботов запускать
-SPAM_MESSAGE = "..."                  # что спамить
-SPAM_INTERVAL_MS = 1000               # интервал между сообщениями, мс
-AUTH = "offline"                      # 'offline' для пиратки, 'microsoft' для online-mode
-RECONNECT_DELAY = 12                  # базовая задержка реконнекта, сек
-SPAWN_STAGGER = 6.0                   # разнос стартов ботов, сек
+Все параметры — в `orchestrator.py`:
 
-Ники генерируются автоматически из списка PREFIXES + 5 случайных символов.
+| Параметр | Описание | Пример |
+|---|---|---|
+| `HOST` | Адрес MC-сервера | `"127.0.0.1"` |
+| `PORT` | Порт сервера | `25565` |
+| `NUM_BOTS` | Сколько ботов запускать | `10` |
+| `SPAM_MESSAGE` | Что спамить | `"..."` |
+| `SPAM_INTERVAL_MS` | Интервал между сообщениями, мс | `1000` |
+| `AUTH` | `offline` для пиратки, `microsoft` для online-mode | `"offline"` |
+| `RECONNECT_DELAY` | Базовая задержка реконнекта, сек | `12` |
+| `SPAWN_STAGGER` | Разнос стартов ботов, сек | `6.0` |
 
-Запуск
+Ники генерируются автоматически из списка `PREFIXES` + 5 случайных символов.
 
+---
+
+## Запуск
+
+```bash
 python orchestrator.py
+```
 
-Остановка — Ctrl+C. Оркестратор погасит всех воркеров.
+Остановка — **Ctrl+C**. Оркестратор погасит всех воркеров.
 
-Что увидишь в логе:
+### Что увидишь в логе
 
+```
 [+] BotBKQSb spawned
 [+] xX_1sNIm spawned
 [!] PlayerZvvSD kicked: {"translate":"multiplayer.disconnect.server_full"}
 [-] Noob99AkZ end: socketClosed
 [x] UsergVtPv error: connect ECONNREFUSED 127.0.0.1:50089
+```
 
-- [+] — бот успешно зашёл в мир.
-- [!] — сервер кикнул (throttle, server_full, бан и т.д.).
-- [-] — соединение закрыто.
-- [x] — ошибка внутри воркера.
+| Префикс | Значение |
+|---|---|
+| `[+]` | Бот успешно зашёл в мир |
+| `[!]` | Сервер кикнул (throttle, server_full, бан и т.д.) |
+| `[-]` | Соединение закрыто |
+| `[x]` | Ошибка внутри воркера |
 
-Ограничения и грабли
+---
 
-1. Connection throttled!
+## Ограничения и грабли
 
-Сервер душит коннекты с одного IP. Дефолтное окно на Paper/Spigot —
-4000 мс. Если SPAWN_STAGGER меньше — половина ботов отвалится сразу
-после старта.
+### 1. `Connection throttled!`
 
-Что делать: SPAWN_STAGGER = 6.0 или больше. Если сервер жёстче —
-12–15 сек.
+Сервер душит коннекты с одного IP. Дефолтное окно на Paper/Spigot — **4000 мс**.
+Если `SPAWN_STAGGER` меньше — половина ботов отвалится сразу после старта.
 
-2. multiplayer.disconnect.server_full
+**Что делать:** `SPAWN_STAGGER = 6.0` или больше. Если сервер жёстче — 12–15 сек.
 
-Сервер забит. Ты занимаешь больше слотов, чем max-players.
-Уменьшай NUM_BOTS или ставь паузу на реконнект после server_full.
+### 2. `multiplayer.disconnect.server_full`
 
-3. ViaProxy failed to start. Exit code: 3221225794
+Сервер забит. Ты занимаешь больше слотов, чем `max-players`.
+Уменьшай `NUM_BOTS` или ставь паузу на реконнект после `server_full`.
 
-0xC0000142 = STATUS_DLL_INIT_FAILED. Windows не тянет много
-параллельных JVM. Практический предел — 3–5 ботов с per-bot ViaProxy.
+### 3. `ViaProxy failed to start. Exit code: 3221225794`
 
-Что делать:
-- Уменьшить NUM_BOTS до 3–5.
-- Или поднять один общий ViaProxy и направить всех ботов в него
-  (см. раздел «Один ViaProxy на всех»).
+`0xC0000142` = `STATUS_DLL_INIT_FAILED`. **Windows не тянет много параллельных JVM.**
+Практический предел — **3–5 ботов** с per-bot ViaProxy.
 
-4. bot._client.chat is not a function
+**Что делать:**
+- Уменьшить `NUM_BOTS` до 3–5.
+- Или поднять **один общий ViaProxy** и направить всех ботов в него (см. [раздел ниже](#один-viaproxy-на-всех-для-10-ботов)).
 
-mineflayer-viaproxy иногда не привязывает bot._client.chat до первого
-тика. В bot_worker.js есть фоллбэк на прямой write('chat_message', ...).
+### 4. `bot._client.chat is not a function`
 
-5. MaxListenersExceededWarning
+`mineflayer-viaproxy` иногда не привязывает `bot._client.chat` до первого тика.
+В `bot_worker.js` есть фоллбэк на прямой `write('chat_message', ...)`.
 
-Каждый реконнект плодит listener'ы на process.beforeExit и не снимает.
+### 5. `MaxListenersExceededWarning`
+
+Каждый реконнект плодит listener'ы на `process.beforeExit` и не снимает.
 После ~10 реконнектов на воркер — warning, после ~20 — утечка.
 Косметика, но лучше не давать ботам реконнектиться слишком часто.
 
-Один ViaProxy на всех (для 10+ ботов)
+---
 
-Если 3–5 ботов мало, а 10+ с per-bot ViaProxy крашится — делаем так:
+## Один ViaProxy на всех (для 10+ ботов)
 
-1. Скачать ViaProxy.jar
+Если 3–5 ботов мало, а 10+ с per-bot ViaProxy крашится — делаем так.
 
-https://github.com/ViaVersion/ViaProxy/releases/latest
+### 1. Скачать `ViaProxy.jar`
 
-Положить в viaproxy/ViaProxy.jar.
+[github.com/ViaVersion/ViaProxy/releases/latest](https://github.com/ViaVersion/ViaProxy/releases/latest)
 
-2. Запустить ViaProxy отдельно
+Положить в `viaproxy/ViaProxy.jar`.
 
+### 2. Запустить ViaProxy отдельно
+
+```bash
 cd viaproxy
 java -jar ViaProxy.jar
+```
 
 В меню:
-- target: <адрес твоего MC-сервера>:25565
-- bind: 127.0.0.1:25568
-- target version: 26.2
+
+| Поле | Значение |
+|---|---|
+| target | `<адрес твоего MC-сервера>:25565` |
+| bind | `127.0.0.1:25568` |
+| target version | `26.2` |
 
 Проверить что слушает:
 
+```bash
 # Windows
 netstat -an | findstr 25568
 
 # Linux / macOS
 ss -tlnp | grep 25568
+```
 
-3. Поправить bot_worker.js
+### 3. Поправить `bot_worker.js`
 
+```js
 bot = await createBot({
   host: '127.0.0.1',
   port: 25568,                 // порт ViaProxy
@@ -172,15 +205,20 @@ bot = await createBot({
   forceViaProxy: false,        // свой ViaProxy не поднимаем
   // viaProxyOpts: { ... }     // убрать
 });
+```
 
 Теперь 10–20 ботов коннектятся в одну JVM, ресурсы не улетают в космос.
 
-Правовая хуйня
+---
 
-Код выложен «как есть», для образовательных целей. Автор не несёт
-ответственности за то, как ты его используешь. Спам в чужих серверах —
-это твои проблемы с админами, а не мои.
+## Правовая хуйня
 
-Лицензия
+Код выложен «как есть», для образовательных целей.
+Автор не несёт ответственности за то, как ты его используешь.
+Спам в чужих серверах — это твои проблемы с админами, а не мои.
 
-НЕТ
+---
+
+## Лицензия
+
+[MIT](LICENSE)
