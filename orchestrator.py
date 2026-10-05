@@ -12,7 +12,7 @@ import random as _rnd  # если ещё не импортирован
 HOST = "178.45.197.17"
 PORT = 25565
 NUM_BOTS = 10
-SPAM_MESSAGE = "Вы - жертва сети ботов MinecraftNET Scanner. Подробнее на сайте: https://minecraftnet-scanner.onrender.com/"
+SPAM_MESSAGE = "Вы - жертва бота Minecraft Spam Bot. Подробнее на сайте: https://minecraft-spam-bot-website.onrender.com/"
 SPAM_INTERVAL_MS = 1000
 AUTH = "offline"                      # 'microsoft' если online-mode=true
 NODE_BIN = "node"
