@@ -46,7 +46,7 @@ java -version
 ### 1. Клонировать репозиторий
 
 ```bash
-git clone https://github.com/<твой-юзер>/<репо>.git
+git clone https://github.com/PlatinumByte/Minecraft-Spam-Bot-26.2.git
 cd <репо>
 ```
 
